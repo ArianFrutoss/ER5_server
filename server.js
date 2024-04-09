@@ -50,17 +50,20 @@ app.get('/', (req, res) => {
     res.send("hello world");
 })
 
-app.post('/login', (req, res) => {
-
+app.post('/login', async(req, res) => {
   const data = req.body
 
-  const query = ` SELECT username FROM users
-                  WHERE email = '${data.email}'
-                  AND password = '${data.password}';`
-  const result = db.query(query)
+  const query = `SELECT * FROM users
+                WHERE email = '${data.email}'
+                AND password = '${data.password}';`
 
-  res.send(result.rows)
+  const result = await db.query(query)
 
+  if (result.rows.username != '') {
+    res.status(200).send(result.rows)
+  }else{
+    res.status(401).send("CREDENTIALS NOT CORRECT")
+  }
 })
 
 app.post('/register', (req, res) => {

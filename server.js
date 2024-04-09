@@ -51,21 +51,35 @@ app.get('/', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
+
   const data = req.body
-  if (data.password === '123123') {
-    res.status(200).send(data)
-  }else{
-    res.status(401).send("PASSWORD NOT CORRECT")
-  }
+
+  const query = ` SELECT username FROM users
+                  WHERE email = '${data.email}'
+                  AND password = '${data.password}';`
+  const result = db.query(query)
+
+  res.send(result.rows)
+
 })
 
 app.post('/register', (req, res) => {
-  const data = req.body
-  if (data.email === '') {
+
+  const username = req.body.username;
+  const email    = req.body.email;
+  const password = req.body.password;
+
+  const query  = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
+
+
+    
+  if (email === '' || password === '' || username === '') {
     res.status(401).send("WRONG")
   }else{
+    db.query(query);
     res.status(200).send("OK")
   }
+
 })
 
 app.listen(port, () => {

@@ -1,10 +1,11 @@
 
 import express from 'express'
+import bodyParser from 'body-parser'
 import * as db from './index.js'
 const app = express()
 const port = 3000
 
-
+app.use(bodyParser.json())
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -47,6 +48,24 @@ ORDER by card_id;`
 
 app.get('/', (req, res) => {
     res.send("hello world");
+})
+
+app.post('/login', (req, res) => {
+  const data = req.body
+  if (data.password === '123123') {
+    res.status(200).send(data)
+  }else{
+    res.status(401).send("PASSWORD NOT CORRECT")
+  }
+})
+
+app.post('/register', (req, res) => {
+  const data = req.body
+  if (data.email === '') {
+    res.status(401).send("WRONG")
+  }else{
+    res.status(200).send("OK")
+  }
 })
 
 app.listen(port, () => {

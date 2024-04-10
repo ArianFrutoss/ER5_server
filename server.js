@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 });
 
 
-app.get('/test', async (req, res) =>{
+app.get('/test', async (req, res) => {
   const query = `SELECT card.*,(
 	
     SELECT json_agg(json_build_object('attribute_id', attribute.attribute_id, 
@@ -47,10 +47,10 @@ ORDER by card_id;`
 })
 
 app.get('/', (req, res) => {
-    res.send("hello world");
+  res.send("hello world");
 })
 
-app.post('/login', async(req, res) => {
+app.post('/login', async (req, res) => {
   const data = req.body
 
   const query = `SELECT * FROM users
@@ -61,29 +61,41 @@ app.post('/login', async(req, res) => {
 
   if (result.rows.username != '') {
     res.status(200).send(result.rows)
-  }else{
+  } else {
     res.status(401).send("CREDENTIALS NOT CORRECT")
   }
 })
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
 
   const username = req.body.username;
-  const email    = req.body.email;
+  const email = req.body.email;
   const password = req.body.password;
+  
+  const query = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
 
-  const query  = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
-
-
-    
   if (email === '' || password === '' || username === '') {
-    res.status(401).send("WRONG")
-  }else{
-    db.query(query);
-    res.status(200).send("OK")
-  }
+    
+      res.status(401).send("WRONG");
 
+  } else {
+    const comprobationQuery = `SELECT * FROM users WHERE email = '${email}';`;
+
+    const result = await db.query(comprobationQuery);
+    if (result.rows.length > 0) {
+
+      res.status(401).send("YA HAY UN USUARIO CON ESE EMAIL");
+      
+    } else {
+
+      db.query(query);
+      res.status(200).send("OK");
+      
+    }
+
+  }
 })
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

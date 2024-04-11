@@ -3,7 +3,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import * as db from './index.js'
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 
 app.use(bodyParser.json())
 app.use((req, res, next) => {
@@ -48,6 +48,21 @@ ORDER by card_id;`
 
 app.get('/', (req, res) => {
   res.send("hello world");
+})
+
+app.post('/users', async (req, res) => {
+   const data = req.body
+  console.log(data);
+  const query = `SELECT username FROM users
+                 WHERE email not in ('${data.email}');`
+
+  const result = await db.query(query)
+
+  if (result.rows.username != '') {
+    res.status(200).send(result.rows)
+  } else {
+    res.status(401).send("connection error")
+  }
 })
 
 app.post('/login', async (req, res) => {

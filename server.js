@@ -1,4 +1,3 @@
-
 import express from 'express'
 import bodyParser from 'body-parser'
 import * as db from './index.js'
@@ -73,9 +72,10 @@ app.post('/login', async (req, res) => {
                 AND password = '${data.password}';`
 
   const result = await db.query(query)
-
+  const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username}
+  
   if (result.rows.username != '') {
-    res.status(200).send(result.rows)
+    res.status(200).send(resultToSend)
   } else {
     res.status(401).send("CREDENTIALS NOT CORRECT")
   }

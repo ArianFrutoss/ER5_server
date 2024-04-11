@@ -1,4 +1,3 @@
-
 import express from 'express'
 import bodyParser from 'body-parser'
 import * as db from './index.js'
@@ -14,7 +13,7 @@ app.use((req, res, next) => {
 });
 
 
-app.get('/test', async (req, res) =>{
+app.get('/test', async (req, res) => {
   const query = `SELECT card.*,(
 	
     SELECT json_agg(json_build_object('attribute_id', attribute.attribute_id, 
@@ -47,26 +46,56 @@ ORDER by card_id;`
 })
 
 app.get('/', (req, res) => {
-    res.send("hello world");
+  res.send("hello world");
 })
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const data = req.body
-  if (data.password === '123123') {
-    res.status(200).send(data)
-  }else{
-    res.status(401).send("PASSWORD NOT CORRECT")
+
+  const query = `SELECT * FROM users
+                WHERE email = '${data.email}'
+                AND password = '${data.password}';`
+
+  const result = await db.query(query)
+  const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username}
+  
+  if (result.rows.username != '') {
+    res.status(200).send(resultToSend)
+  } else {
+    res.status(401).send("CREDENTIALS NOT CORRECT")
   }
 })
 
-app.post('/register', (req, res) => {
-  const data = req.body
-  if (data.email === '') {
-    res.status(401).send("WRONG")
-  }else{
-    res.status(200).send("OK")
+app.post('/register', async (req, res) => {
+
+  const username = req.body.username;
+  const email = req.body.email;
+  const password = req.body.password;
+  
+  const query = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
+
+  if (email === '' || password === '' || username === '') {
+    
+      res.status(401).send("WRONG");
+
+  } else {
+    const comprobationQuery = `SELECT * FROM users WHERE email = '${email}';`;
+
+    const result = await db.query(comprobationQuery);
+    if (result.rows.length > 0) {
+
+      res.status(401).send("YA HAY UN USUARIO CON ESE EMAIL");
+      
+    } else {
+
+      db.query(query);
+      res.status(200).send("OK");
+      
+    }
+
   }
 })
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

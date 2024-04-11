@@ -57,8 +57,8 @@ app.post('/login', async (req, res) => {
                 AND password = '${data.password}';`
 
   const result = await db.query(query)
-  const resultToSend = [result.rows[0].id, result.rows[0].email, result.rows[0].username]
-
+  const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username}
+  
   if (result.rows.username != '') {
     res.status(200).send(resultToSend)
   } else {

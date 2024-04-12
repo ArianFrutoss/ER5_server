@@ -49,22 +49,6 @@ app.get('/', (req, res) => {
   res.send("hello world");
 })
 
-app.post('/users', async (req, res) => {
-   const data = req.body
-  console.log(data);
-  const query = `SELECT username FROM users
-                 WHERE email not in ('${data.email}')
-                 ORDER BY username [ASC];`
-
-  const result = await db.query(query)
-
-  if (result.rows.username != '') {
-    res.status(200).send(result.rows)
-  } else {
-    res.status(401).send("connection error")
-  }
-})
-
 app.post('/login', async (req, res) => {
   const data = req.body
 
@@ -72,9 +56,21 @@ app.post('/login', async (req, res) => {
                 WHERE email = '${data.email}'
                 AND password = '${data.password}';`
 
-  const result = await db.query(query)
-  const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username}
-  
+
+                const query2 = `SELECT username FROM users
+                WHERE email not in ('${data.email}')
+                ORDER BY username ASC;`
+
+ const result = await db.query(query)
+ const result2 = await db.query(query2)
+ let opponentsArray =result2.rows
+
+ for (let i = 0; i < result2.rows.length; i++) {
+   const element = result2.rows[i].username;
+   opponentsArray.push[element]
+ }
+ const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray}
+ 
   if (result.rows.username != '') {
     res.status(200).send(resultToSend)
   } else {

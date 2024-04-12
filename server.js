@@ -54,7 +54,7 @@ app.post('/users', async (req, res) => {
   console.log(data);
   const query = `SELECT username FROM users
                  WHERE email not in ('${data.email}')
-                 ORDER BY username [ASC];`
+                 ORDER BY username ASC;`
 
   const result = await db.query(query)
 

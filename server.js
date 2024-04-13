@@ -27,7 +27,8 @@ FROM card_attribute
 
 (
 
-    SELECT json_agg(json_build_object('common_effect_id', common_effect.common_effect_id, 
+    SELECT json_agg(json_build_object('common_effect_id', common_effect.common_effect_id,
+                                      'attribute_id', attribute.attribute_id, 
                                       'common_effect_description', common_effect.description, 
                                       'common_effect_deskripzioa', common_effect.deskripzioa, 
                                       'common_effect_attribute', attribute.name, 

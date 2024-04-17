@@ -4,14 +4,14 @@ import bodyParser from 'body-parser'
 import * as db from './index.js'
 const mongodbRoute = process.env.MONGOURL
 const app = express()
-const port = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000
 
 async function start(){
   try{
      
       await mongoose.connect(mongodbRoute);
-      app.listen( process.env.PORT, () => {
-          console.log(`Api is running on port ${process.env.PORT}`);
+      app.listen( PORT, () => {
+          console.log(`Api is running on port ${PORT}`);
       })
       console.log(`Conexion con la base de datos Mongo Correcta`)
 
@@ -129,6 +129,6 @@ app.post('/register', async (req, res) => {
 })
 
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`)
 })

@@ -1,9 +1,28 @@
+import mongoose from 'mongoose';
 import express from 'express'
 import bodyParser from 'body-parser'
 import * as db from './index.js'
+const mongodbRoute = process.env.MONGOURL
 const app = express()
 const port = process.env.PORT || 3000
 
+async function start(){
+  try{
+     
+      await mongoose.connect(mongodbRoute);
+      app.listen( process.env.PORT, () => {
+          console.log(`Api is running on port ${process.env.PORT}`);
+      })
+      console.log(`Conexion con la base de datos Mongo Correcta`)
+
+  }
+  catch (error){
+      console.log(`Error al conectar con la base de datos: ${error.message}`);
+  }
+}
+
+
+start();
 app.use(bodyParser.json())
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');

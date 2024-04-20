@@ -11,4 +11,4 @@ const userSchema = new mongoose.Schema({name: {
                                                 },
 
                                         games: [{type: mongoose.Schema.Types.ObjectId, ref: 'Game'}] });
-export const User = mongoose.model('User', userSchema);
+export const User = mongoose.model('User', userSchema, 'Users');

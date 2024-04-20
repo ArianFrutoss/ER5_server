@@ -20,6 +20,6 @@ const gameSchema = new mongoose.Schema({
                                             type: Date, default: Date.now
                                           } });
 
-export const Game = mongoose.model('Game', gameSchema);
+export const Game = mongoose.model('Game', gameSchema, 'Games');
 
 

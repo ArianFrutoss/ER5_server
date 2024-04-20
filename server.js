@@ -12,6 +12,7 @@ const client = new MongoClient(mongodbRoute,  {
       strict: true,
       deprecationErrors: true,
   }
+  
 });
 const myDB = client.db(process.env.PGDATABASE);
 const gamesCollection = myDB.collection(process.env.MONGOGAMESCOLLECTION);
@@ -175,44 +176,50 @@ app.post('/register', async (req, res) => {
 })
 
 app.post('/newGame', async (req, res) => {
-const players = req.body.players
-const player1Id = players[0].id
-const player2Id = players[1].id
-const game = new Game({players: [{id: player1Id,
-              meleeHits: players[0].meleeHits,
-              rangedHits: players[0].rangedHits,
-              damageDone: players[0].damageDone,
-              damageReceived: players[0].damageReceived},
+  const players = req.body.players;
 
-            {id: player2Id,
-              meleeHits: players[1].meleeHits,
-              rangedHits: players[1].rangedHits,
-              damageDone: players[1].damageDone,
-              damageReceived: players[1].damageReceived}],
-               }); 
-const gameId = game._id 
+      const player1Id = players[0].id;
+      const player2Id = players[1].id;
 
+      const player1 = await usersCollection.findOne({ _id: new ObjectId(player1Id) });
+      const player2 = await usersCollection.findOne({ _id: new ObjectId(player2Id) });
 
-  if (!players) {
-    
-      res.status(401).send("WRONG");
-
-  } else {
-    const player1UpdateResult = await usersCollection.updateOne({ _id: player1Id }, { $push: { games: gameId } });
-    // const player2UpdateResult = await usersCollection.updateOne({ _id: player2Id }, { $push: { games: gameId } });
-    // const result = await gamesCollection.insertOne(game);
-    if (!player1UpdateResult) {
-
-      res.status(401).send("error inserting to db");
+      if (!player1) {
+          console.log("Jugador 1 no encontrado");
+          return res.status(404).send("Jugador 1 no encontrado");
+      }else if (!player2) {
+          console.log("Jugador 2 no encontrado");
+          return res.status(404).send("Jugador 2 no encontrado");
+      }
       
-    } else {
+      const game = new Game({
+          players: [
+              {
+                  player_id: player1Id,
+                  meleeHits: players[0].meleeHits,
+                  rangedHits: players[0].rangedHits,
+                  damageDone: players[0].damageDone,
+                  damageReceived: players[0].damageReceived
+              },
+              {
+                  player_id: player2Id,
+                  meleeHits: players[1].meleeHits,
+                  rangedHits: players[1].rangedHits,
+                  damageDone: players[1].damageDone,
+                  damageReceived: players[1].damageReceived
+              }
+          ]
+      });
 
-      res.status(200).send(player1UpdateResult);
-      
-    }
+      await gamesCollection.insertOne(game);
 
-  }
-})
+      await usersCollection.updateOne({ _id: new ObjectId(player1Id) }, { $push: { games: game._id } });
+      await usersCollection.updateOne({ _id: new ObjectId(player2Id) }, { $push: { games: game._id } });
+
+      res.status(200).send("Data Correctly Saved in Database.");
+  });
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

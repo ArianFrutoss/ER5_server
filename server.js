@@ -2,14 +2,27 @@ import mongoose from 'mongoose';
 import express from 'express'
 import bodyParser from 'body-parser'
 import * as db from './index.js'
+import { User } from './Models/User.js';
+import { MongoClient, ObjectId, ServerApiVersion } from 'mongodb';
+import { Game } from './Models/Game.js';
 const mongodbRoute = process.env.MONGOURL
+const client = new MongoClient(mongodbRoute,  {
+  serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+  }
+});
+const myDB = client.db(process.env.PGDATABASE);
+const gamesCollection = myDB.collection(process.env.MONGOGAMESCOLLECTION);
+const usersCollection = myDB.collection(process.env.MONGOUSERSCOLLECTION);
 const app = express()
 const port = process.env.PORT || 3000
 
 async function start(){
   try{
      
-      await mongoose.connect(mongodbRoute);
+      await client.connect(mongodbRoute);
       app.listen( process.env.PORT, () => {
           console.log(`Api is running on port ${process.env.PORT}`);
       })
@@ -23,6 +36,39 @@ async function start(){
 
 
 start();
+
+// const user1 = new User
+// ({name:"Unai",
+//   avatar:"ninguno",
+//   games:[]})
+
+// const user2 = new User
+// ({name:"Arian",
+//   avatar:"ninguno",
+//   games:[]})
+
+// const game1 = new Game
+// ({players: [{id: user1._id,
+//               meleeHits:25,
+//               rangedHits:30,
+//               damageDone:100,
+//               damageReceived:98},
+
+//             {id: user2._id,
+//               meleeHits:12,
+//               rangedHits:65,
+//               damageDone:98,
+//               damageReceived:100}],
+//                }); 
+// user1.games.push(game1._id) 
+// user2.games.push(game1._id) 
+
+// console.log("ID Player1 en la partida: " + game1.players[0].id,"|||  ID Player1: " + user1._id);
+// console.log("ID Player2 en la partida: " + game1.players[1].id,"|||  ID Player2: " +  user2._id);
+// console.log("ID de partida en Player1: " + user1.games[0]._id);
+// console.log("ID de partida en Player2: " + user2.games[0]._id);
+// console.log("ID de partida:            " + game1._id);
+
 app.use(bodyParser.json())
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -128,6 +174,45 @@ app.post('/register', async (req, res) => {
   }
 })
 
+app.post('/newGame', async (req, res) => {
+const players = req.body.players
+const player1Id = players[0].id
+const player2Id = players[1].id
+const game = new Game({players: [{id: player1Id,
+              meleeHits: players[0].meleeHits,
+              rangedHits: players[0].rangedHits,
+              damageDone: players[0].damageDone,
+              damageReceived: players[0].damageReceived},
+
+            {id: player2Id,
+              meleeHits: players[1].meleeHits,
+              rangedHits: players[1].rangedHits,
+              damageDone: players[1].damageDone,
+              damageReceived: players[1].damageReceived}],
+               }); 
+const gameId = game._id 
+
+
+  if (!players) {
+    
+      res.status(401).send("WRONG");
+
+  } else {
+    const player1UpdateResult = await usersCollection.updateOne({ _id: player1Id }, { $push: { games: gameId } });
+    // const player2UpdateResult = await usersCollection.updateOne({ _id: player2Id }, { $push: { games: gameId } });
+    // const result = await gamesCollection.insertOne(game);
+    if (!player1UpdateResult) {
+
+      res.status(401).send("error inserting to db");
+      
+    } else {
+
+      res.status(200).send(player1UpdateResult);
+      
+    }
+
+  }
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

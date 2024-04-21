@@ -208,7 +208,8 @@ app.post('/newGame', async (req, res) => {
                   damageDone: players[1].damageDone,
                   damageReceived: players[1].damageReceived
               }
-          ]
+          ],
+          winner: req.body.winner
       });
 
       await gamesCollection.insertOne(game);

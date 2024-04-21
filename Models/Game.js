@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 
 const gameSchema = new mongoose.Schema({
-                                        players: [{id: {type: String},
+                                        players: [{player_id: {type: String},
                                                     meleeHits: {
                                                         type: Number
                                                     },
@@ -18,7 +18,8 @@ const gameSchema = new mongoose.Schema({
 
                                         date: {
                                             type: Date, default: Date.now
-                                          } });
+                                          },
+                                        winner: {type: String} });
 
 export const Game = mongoose.model('Game', gameSchema, 'Games');
 

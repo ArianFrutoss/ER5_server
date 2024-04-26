@@ -124,19 +124,20 @@ app.post('/login', async (req, res) => {
                 AND password = '${data.password}';`
 
 
-                const query2 = `SELECT username FROM users
-                WHERE email not in ('${data.email}')
-                ORDER BY username ASC;`
+  const query2 = `SELECT username, mongo_id FROM users
+                  WHERE email not in ('${data.email}')
+                  ORDER BY username ASC;`
 
- const result = await db.query(query)
- const result2 = await db.query(query2)
- let opponentsArray =result2.rows
+  const result = await db.query(query)
+  const result2 = await db.query(query2)
+  let opponentsArray =result2.rows
 
  for (let i = 0; i < result2.rows.length; i++) {
    const element = result2.rows[i].username;
-   opponentsArray.push[element]
+   const enemy   = result2.rows[i].mongo_id;
+   opponentsArray.push[element, enemy];
  }
- const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray}
+ const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray, mongo_id: result.rows[0].mongo_id}
  
   if (result.rows.username != '') {
     res.status(200).send(resultToSend)

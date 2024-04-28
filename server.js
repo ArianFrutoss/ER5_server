@@ -6,32 +6,33 @@ import { User } from './Models/User.js';
 import { MongoClient, ObjectId, ServerApiVersion } from 'mongodb';
 import { Game } from './Models/Game.js';
 const mongodbRoute = process.env.MONGOURL
-const client = new MongoClient(mongodbRoute,  {
+const client = new MongoClient(mongodbRoute, {
   serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
   }
-  
+
 });
 const myDB = client.db(process.env.PGDATABASE);
 const gamesCollection = myDB.collection(process.env.MONGOGAMESCOLLECTION);
 const usersCollection = myDB.collection(process.env.MONGOUSERSCOLLECTION);
 const app = express()
 const port = process.env.PORT || 3000
+const mongodb_port = process.env.PORT_MONGO|| 4000;
 
-async function start(){
-  try{
-     
-      await client.connect(mongodbRoute);
-      app.listen( process.env.PORT, () => {
-          console.log(`Api is running on port ${process.env.PORT}`);
-      })
-      console.log(`Conexion con la base de datos Mongo Correcta`)
+async function start() {
+  try {
+
+    await client.connect(mongodbRoute);
+    app.listen(mongodb_port, () => {
+      console.log(`Api is running on port ${mongodb_port}`);
+    })
+    console.log(`Conexion con la base de datos Mongo Correcta`)
 
   }
-  catch (error){
-      console.log(`Error al conectar con la base de datos: ${error.message}`);
+  catch (error) {
+    console.log(`Error al conectar con la base de datos: ${error.message}`);
   }
 }
 
@@ -130,15 +131,15 @@ app.post('/login', async (req, res) => {
 
   const result = await db.query(query)
   const result2 = await db.query(query2)
-  let opponentsArray =result2.rows
+  let opponentsArray = result2.rows
 
- for (let i = 0; i < result2.rows.length; i++) {
-   const element = result2.rows[i].username;
-   const enemy   = result2.rows[i].mongo_id;
-   opponentsArray.push[element, enemy];
- }
- const resultToSend = {id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray, mongo_id: result.rows[0].mongo_id}
- 
+  for (let i = 0; i < result2.rows.length; i++) {
+    const element = result2.rows[i].username;
+    const enemy = result2.rows[i].mongo_id;
+    opponentsArray.push[element, enemy];
+  }
+  const resultToSend = { id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray, mongo_id: result.rows[0].mongo_id }
+
   if (result.rows.username != '') {
     res.status(200).send(resultToSend)
   } else {
@@ -151,12 +152,12 @@ app.post('/register', async (req, res) => {
   const username = req.body.username;
   const email = req.body.email;
   const password = req.body.password;
-  
+
   const query = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
 
   if (email === '' || password === '' || username === '') {
-    
-      res.status(401).send("WRONG");
+
+    res.status(401).send("WRONG");
 
   } else {
     const comprobationQuery = `SELECT * FROM users WHERE email = '${email}';`;
@@ -165,12 +166,12 @@ app.post('/register', async (req, res) => {
     if (result.rows.length > 0) {
 
       res.status(401).send("YA HAY UN USUARIO CON ESE EMAIL");
-      
+
     } else {
 
       db.query(query);
       res.status(200).send("OK");
-      
+
     }
 
   }
@@ -179,50 +180,62 @@ app.post('/register', async (req, res) => {
 app.post('/newGame', async (req, res) => {
   const players = req.body.players;
 
-      const player1Id = players[0].id;
-      const player2Id = players[1].id;
+  const player1Id = players[0].id;
+  const player2Id = players[1].id;
 
-      const player1 = await usersCollection.findOne({ _id: new ObjectId(player1Id) });
-      const player2 = await usersCollection.findOne({ _id: new ObjectId(player2Id) });
+  const player1 = await usersCollection.findOne({ _id: new ObjectId(player1Id) });
+  const player2 = await usersCollection.findOne({ _id: new ObjectId(player2Id) });
 
-      if (!player1) {
-          console.log("Jugador 1 no encontrado");
-          return res.status(404).send("Jugador 1 no encontrado");
-      }else if (!player2) {
-          console.log("Jugador 2 no encontrado");
-          return res.status(404).send("Jugador 2 no encontrado");
+  if (!player1) {
+    console.log("Jugador 1 no encontrado");
+    return res.status(404).send("Jugador 1 no encontrado");
+  } else if (!player2) {
+    console.log("Jugador 2 no encontrado");
+    return res.status(404).send("Jugador 2 no encontrado");
+  }
+
+  const game = new Game({
+    players: [
+      {
+        player_id: player1Id,
+        meleeHits: players[0].meleeHits,
+        rangedHits: players[0].rangedHits,
+        damageDone: players[0].damageDone,
+        damageReceived: players[0].damageReceived
+      },
+      {
+        player_id: player2Id,
+        meleeHits: players[1].meleeHits,
+        rangedHits: players[1].rangedHits,
+        damageDone: players[1].damageDone,
+        damageReceived: players[1].damageReceived
       }
-      
-      const game = new Game({
-          players: [
-              {
-                  player_id: player1Id,
-                  meleeHits: players[0].meleeHits,
-                  rangedHits: players[0].rangedHits,
-                  damageDone: players[0].damageDone,
-                  damageReceived: players[0].damageReceived
-              },
-              {
-                  player_id: player2Id,
-                  meleeHits: players[1].meleeHits,
-                  rangedHits: players[1].rangedHits,
-                  damageDone: players[1].damageDone,
-                  damageReceived: players[1].damageReceived
-              }
-          ],
-          winner: req.body.winner
-      });
-
-      await gamesCollection.insertOne(game);
-
-      await usersCollection.updateOne({ _id: new ObjectId(player1Id) }, { $push: { games: game._id } });
-      await usersCollection.updateOne({ _id: new ObjectId(player2Id) }, { $push: { games: game._id } });
-
-      res.status(200).send("Data Correctly Saved in Database.");
+    ],
+    winner: req.body.winner
   });
 
+  await gamesCollection.insertOne(game);
 
+  await usersCollection.updateOne({ _id: new ObjectId(player1Id) }, { $push: { games: game._id } });
+  await usersCollection.updateOne({ _id: new ObjectId(player2Id) }, { $push: { games: game._id } });
+
+  res.status(200).send("Data Correctly Saved in Database.");
+});
+
+app.get('/getStatsData', async (req, res) => {
+  const mongo_id = req.body.mongo_id;
+
+  const results = await gamesCollection.aggregate([
+    { 
+      "$match": {
+        "players.player_id": mongo_id
+      }
+    }
+  ]).toArray();
+    
+  res.send(results).status(200);
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
-})
+});

@@ -232,8 +232,13 @@ app.get('/getStatsData', async (req, res) => {
       }
     }
   ]).toArray();
-    
-  res.send(results).status(200);
+  
+  if(results.length === 0){
+    res.status(401).send("El usuario no tiene partidas jugadas");
+  }else{
+    res.send(results).status(200);
+  }
+ 
 });
 
 app.listen(port, () => {

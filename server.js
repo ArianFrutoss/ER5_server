@@ -222,9 +222,8 @@ app.post('/newGame', async (req, res) => {
   res.status(200).send("Data Correctly Saved in Database.");
 });
 
-app.get('/getStatsData', async (req, res) => {
-  const mongo_id = req.body.mongo_id;
-
+app.get('/getStatsData/:id', async (req, res) => {
+  const mongo_id = req.params.id;
   const results = await gamesCollection.aggregate([
     { 
       "$match": {

@@ -19,7 +19,8 @@ const gameSchema = new mongoose.Schema({
                                         date: {
                                             type: Date, default: Date.now
                                           },
-                                        winner: {type: String} });
+                                        winner: {type: String},
+                                        loser: {type: String} });
 
 export const Game = mongoose.model('Game', gameSchema, 'Games');
 

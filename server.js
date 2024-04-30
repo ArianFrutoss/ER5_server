@@ -181,8 +181,8 @@ app.post('/register', async (req, res) => {
 app.post('/newGame', async (req, res) => {
   const players = req.body.players;
 
-  const player1Id = players[0].id;
-  const player2Id = players[1].id;
+  const player1Id = players[0].player_id;
+  const player2Id = players[1].player_id;
 
   const player1 = await usersCollection.findOne({ _id: new ObjectId(player1Id) });
   const player2 = await usersCollection.findOne({ _id: new ObjectId(player2Id) });
@@ -212,7 +212,8 @@ app.post('/newGame', async (req, res) => {
         damageReceived: players[1].damageReceived
       }
     ],
-    winner: req.body.winner
+    winner: req.body.winner,
+    loser: req.body.loser
   });
 
   await gamesCollection.insertOne(game);

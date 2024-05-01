@@ -99,8 +99,7 @@ FROM card_attribute
                                       'common_effect_description', common_effect.description, 
                                       'common_effect_deskripzioa', common_effect.deskripzioa, 
                                       'common_effect_attribute', attribute.name, 
-                                      'common_effect_value', common_effect.value,
-                                      'type', common_effect.type))
+                                      'common_effect_value', common_effect.value))
 
     FROM card_common_effect
     JOIN common_effect ON card_common_effect.common_effect_id = common_effect.common_effect_id

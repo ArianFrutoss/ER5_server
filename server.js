@@ -119,127 +119,153 @@ app.get('/', (req, res) => {
 })
 
 app.post('/login', async (req, res) => {
-  const data = req.body
+  try{
+    const data = req.body
 
-  const query = `SELECT * FROM users
-                WHERE email = '${data.email}'
-                AND password = '${data.password}';`
+    const query = `SELECT * FROM users
+                  WHERE email   = '${data.email}'
+                  AND password  = '${data.password}';`
+  
+  
+    const query2 = `SELECT username, mongo_id FROM users
+                    WHERE email not in ('${data.email}')
+                    ORDER BY username ASC;`
+    
+             
+    const result = await db.query(query)
+    const result2 = await db.query(query2)
+    let opponentsArray = result2.rows
+  
+    for (let i = 0; i < result2.rows.length; i++) {
+      const element = result2.rows[i].username;
+      const enemy = result2.rows[i].mongo_id;
+      opponentsArray.push[element, enemy];
+    }
+    const resultToSend = { id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray, mongo_id: result.rows[0].mongo_id }
+  
+    if (result.rows.username != '') {
+      res.status(200).send(resultToSend)
+    } else {
+      res.status(401).send("CREDENTIALS NOT CORRECT")
+    }
+  }catch(error){
+    
+    console.error("Error en la autenticación:", error);
+    res.status(500).send("Error interno del servidor");
 
-
-  const query2 = `SELECT username, mongo_id FROM users
-                  WHERE email not in ('${data.email}')
-                  ORDER BY username ASC;`
-
-  const result = await db.query(query)
-  const result2 = await db.query(query2)
-  let opponentsArray = result2.rows
-
-  for (let i = 0; i < result2.rows.length; i++) {
-    const element = result2.rows[i].username;
-    const enemy = result2.rows[i].mongo_id;
-    opponentsArray.push[element, enemy];
   }
-  const resultToSend = { id: result.rows[0].id, email: result.rows[0].email, username: result.rows[0].username, opponents: opponentsArray, mongo_id: result.rows[0].mongo_id }
 
-  if (result.rows.username != '') {
-    res.status(200).send(resultToSend)
-  } else {
-    res.status(401).send("CREDENTIALS NOT CORRECT")
-  }
 })
 
 app.post('/register', async (req, res) => {
-
-  const username = req.body.username;
-  const email = req.body.email;
-  const password = req.body.password;
-
-  const query = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
-
-  if (email === '' || password === '' || username === '') {
-
-    res.status(401).send("WRONG");
-
-  } else {
-    const comprobationQuery = `SELECT * FROM users WHERE email = '${email}';`;
-
-    const result = await db.query(comprobationQuery);
-    if (result.rows.length > 0) {
-
-      res.status(401).send("YA HAY UN USUARIO CON ESE EMAIL");
-
+  try{
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
+  
+    const query = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
+  
+    if (email === '' || password === '' || username === '') {
+  
+      res.status(401).send("WRONG");
+  
     } else {
-
-      db.query(query);
-      res.status(200).send("OK");
-
+      const comprobationQuery = `SELECT * FROM users WHERE email = '${email}';`;
+  
+      const result = await db.query(comprobationQuery);
+      if (result.rows.length > 0) {
+  
+        res.status(401).send("YA HAY UN USUARIO CON ESE EMAIL");
+  
+      } else {
+  
+        db.query(query);
+        res.status(200).send("OK");
+  
+      }
     }
+  }catch(error){
 
+    console.error("Error al crear usuario: ", error);
+    res.status(500).send("Error al crear usuario");
   }
 })
 
 app.post('/newGame', async (req, res) => {
-  const players = req.body.players;
+  try{
+      const players = req.body.players;
 
-  const player1Id = players[0].player_id;
-  const player2Id = players[1].player_id;
-
-  const player1 = await usersCollection.findOne({ _id: new ObjectId(player1Id) });
-  const player2 = await usersCollection.findOne({ _id: new ObjectId(player2Id) });
-
-  if (!player1) {
-    console.log("Jugador 1 no encontrado");
-    return res.status(404).send("Jugador 1 no encontrado");
-  } else if (!player2) {
-    console.log("Jugador 2 no encontrado");
-    return res.status(404).send("Jugador 2 no encontrado");
-  }
-
-  const game = new Game({
-    players: [
-      {
-        player_id: player1Id,
-        meleeHits: players[0].meleeHits,
-        rangedHits: players[0].rangedHits,
-        damageDone: players[0].damageDone,
-        damageReceived: players[0].damageReceived
-      },
-      {
-        player_id: player2Id,
-        meleeHits: players[1].meleeHits,
-        rangedHits: players[1].rangedHits,
-        damageDone: players[1].damageDone,
-        damageReceived: players[1].damageReceived
+      const player1Id = players[0].player_id;
+      const player2Id = players[1].player_id;
+    
+      const player1 = await usersCollection.findOne({ _id: new ObjectId(player1Id) });
+      const player2 = await usersCollection.findOne({ _id: new ObjectId(player2Id) });
+    
+      if (!player1) {
+        console.log("Jugador 1 no encontrado");
+        return res.status(404).send("Jugador 1 no encontrado");
+      } else if (!player2) {
+        console.log("Jugador 2 no encontrado");
+        return res.status(404).send("Jugador 2 no encontrado");
       }
-    ],
-    winner: req.body.winner,
-    loser: req.body.loser
-  });
+    
+      const game = new Game({
+        players: [
+          {
+            player_id: player1Id,
+            meleeHits: players[0].meleeHits,
+            rangedHits: players[0].rangedHits,
+            damageDone: players[0].damageDone,
+            damageReceived: players[0].damageReceived
+          },
+          {
+            player_id: player2Id,
+            meleeHits: players[1].meleeHits,
+            rangedHits: players[1].rangedHits,
+            damageDone: players[1].damageDone,
+            damageReceived: players[1].damageReceived
+          }
+        ],
+        winner: req.body.winner,
+        loser: req.body.loser
+      });
+    
+      await gamesCollection.insertOne(game);
+    
+      await usersCollection.updateOne({ _id: new ObjectId(player1Id) }, { $push: { games: game._id } });
+      await usersCollection.updateOne({ _id: new ObjectId(player2Id) }, { $push: { games: game._id } });
+    
+      res.status(200).send("Data Correctly Saved in Database.");
+  }catch(error){
 
-  await gamesCollection.insertOne(game);
-
-  await usersCollection.updateOne({ _id: new ObjectId(player1Id) }, { $push: { games: game._id } });
-  await usersCollection.updateOne({ _id: new ObjectId(player2Id) }, { $push: { games: game._id } });
-
-  res.status(200).send("Data Correctly Saved in Database.");
+      console.error("Error al añadir game a mongodb: ", error);
+      res.status(500).send("Error at insert game to database");
+  }
 });
 
 app.get('/getStatsData/:id', async (req, res) => {
-  const mongo_id = req.params.id;
-  const results = await gamesCollection.aggregate([
-    { 
-      "$match": {
-        "players.player_id": mongo_id
+  try{
+    const mongo_id = req.params.id;
+    const results = await gamesCollection.aggregate([
+      { 
+        "$match": {
+          "players.player_id": mongo_id
+        }
       }
+    ]).toArray();
+    
+    if(results.length === 0){ç
+
+      res.status(401).send("El usuario no tiene partidas jugadas");
+    }else{
+
+      res.send(results).status(200);
     }
-  ]).toArray();
-  
-  if(results.length === 0){
-    res.status(401).send("El usuario no tiene partidas jugadas");
-  }else{
-    res.send(results).status(200);
+  }catch(error){
+    console.error("Error to get user games data: ", error);
+    res.status(500).send("Error");
   }
- 
+
 });
 
 app.listen(port, () => {

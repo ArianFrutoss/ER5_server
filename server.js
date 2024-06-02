@@ -169,10 +169,13 @@ app.post('/register', async (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
+    const user = new User({ name: username,
+                            avatar:'',
+                            games: [] });
+    const mongoId = user._id;
+    const query = `insert into users (email, password, username, mongo_id) values ('${email}', '${password}', '${username}', '${mongoId}');`;
   
-    const query = `insert into users (email, password, username) values ('${email}', '${password}', '${username}');`;
-  
-    if (email === '' || password === '' || username === '') {
+    if (email === '' || password === '' || username === '' || mongoId === '') {
   
       res.status(401).send("WRONG");
   
@@ -185,7 +188,8 @@ app.post('/register', async (req, res) => {
         res.status(401).send("YA HAY UN USUARIO CON ESE EMAIL");
   
       } else {
-  
+
+        await usersCollection.insertOne(user);
         db.query(query);
         res.status(200).send("OK");
   

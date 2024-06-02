@@ -110,8 +110,15 @@ FROM card_attribute
 
 FROM card
 ORDER by card_id;`
-  const result = await db.query(query)
-  res.send(result.rows)
+
+  try{
+    const result = await db.query(query)
+    res.send(result.rows)
+  }catch{
+    console.error("Error en la autenticación:", error);
+    res.status(500).send("Error interno del servidor");
+  }
+  
 })
 
 app.get('/', (req, res) => {
